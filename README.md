@@ -36,7 +36,7 @@ class myTrainer(T.TrainerModule):
         ## Perform validation step
 
 model = myModel()
-optimizer = torch.optim.SGG(model.parameters(), lr=0.01)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
 train_dataloader = ## pytorch dataloader
 val_dataloader = ## pytorch dataloader
