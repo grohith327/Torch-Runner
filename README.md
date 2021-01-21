@@ -1,4 +1,4 @@
-# Torch Trainer
+# Torch Runner
 ### A minimal wrapper that removes some of the overhead code in training pytorch models
 Note: If you are looking for something more extensive, checkout [Pytorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning). This is mostly designed for my personal use. 
 
@@ -16,7 +16,7 @@ Note: If you are looking for something more extensive, checkout [Pytorch Lightni
 
 ```python
 import torch
-import torch_trainer as T
+import torch_runner as T
 
 
 class myTrainer(T.TrainerModule):
