@@ -6,6 +6,12 @@ Note: If you are looking for something more extensive, checkout [Pytorch Lightni
 - torch
 - tqdm
 
+## Installation
+
+```
+pip install torch-runner
+```
+
 ## Features
 - seed all variables
 - text logger
