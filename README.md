@@ -19,7 +19,8 @@ pip install torch-runner
 - save hyperparameters
 
 ## Example
-
+Checkout the [examples](https://github.com/grohith327/Torch-Runner/blob/main/examples/Torch_Runner_CIFAR10.ipynb) folder which contains a jupyter notebook to train a resnet50 using torch_runner. 
+ 
 ```python
 import torch
 import torch_runner as T
