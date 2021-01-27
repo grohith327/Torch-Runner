@@ -6,6 +6,7 @@ import logging
 import datetime
 import os
 import yaml
+import copy
 from .utils import seed_everything, EarlyStopping, AverageMeter
 
 
@@ -38,21 +39,27 @@ class TrainerModule:
 
         self.experiment_name = experiment_name
         self.seed = seed
+        self.epochs, self.batch_size = None, None
         seed_everything(self.seed)
 
-    def save_hparams(self, epochs, batch_size, save_path):
-        hparams = {
-            "experiment_name": self.experiment_name,
-            "seed": self.seed,
-            "optimizer": self.optimizer.__class__.__name__,
-            "lr": self.optimizer.param_groups[0]["lr"],
-            "scheduler": self.scheduler.__class__.__name__ if self.scheduler else None,
-            "epochs": epochs,
-            "batch_size": batch_size,
-        }
+    def save_hparams(self, save_path):
+        hparams = copy.deepcopy(self.__dict__)
+        hparams["model"] = hparams["model"].__class__.__name__
+        hparams["optimizer"] = hparams["optimizer"].__class__.__name__
+        hparams["optimizer_params"] = self.get_optim_params()
+        hparams["scheduler"] = hparams["scheduler"].__class__.__name__
+        hparams["device"] = hparams["device"].type
 
         with open(f"{save_path}/hparams.yml", "w") as outfile:
-            yaml.dump(hparams, outfile, default_flow_style=False)
+            yaml.safe_dump(hparams, outfile, default_flow_style=False)
+
+    def get_optim_params(self):
+        optim_dict = {}
+        for group in self.optimizer.param_groups:
+            for key in sorted(group.keys()):
+                if key != "params":
+                    optim_dict[key] = group[key]
+        return optim_dict
 
     def calc_metric(self, **kwargs):
         raise NotImplementedError
@@ -116,6 +123,7 @@ class TrainerModule:
         return pbar_params
 
     def fit(self, train_dataloader, val_dataloader, epochs, batch_size):
+        self.epochs, self.batch_size = epochs, batch_size
         time = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
         dir_name = f"{self.experiment_name}_{time}"
         if os.path.exists(dir_name):
@@ -127,7 +135,7 @@ class TrainerModule:
             level=logging.INFO,
             format="%(message)s",
         )
-        self.save_hparams(epochs, batch_size, dir_name)
+        self.save_hparams(dir_name)
 
         es = EarlyStopping(**self.early_stop_params)
         for epoch in range(epochs):
