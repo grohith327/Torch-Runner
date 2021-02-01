@@ -10,6 +10,15 @@ import copy
 from .utils import seed_everything, EarlyStopping, AverageMeter
 
 
+def import_wandb():
+    try:
+        import wandb
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError(
+            "module wandb not found. use command pip install wandb"
+        )
+
+
 class TrainerModule:
     def __init__(
         self,
@@ -24,6 +33,7 @@ class TrainerModule:
         early_stop_metric="loss",
         experiment_name="model",
         seed=0,
+        use_wandb=False,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -40,7 +50,12 @@ class TrainerModule:
         self.experiment_name = experiment_name
         self.seed = seed
         self.epochs, self.batch_size = None, None
+        self.hparams = None
         seed_everything(self.seed)
+
+        if use_wandb:
+            import_wandb()
+        self.use_wandb = use_wandb
 
     def save_hparams(self, save_path):
         hparams = copy.deepcopy(self.__dict__)
@@ -49,6 +64,7 @@ class TrainerModule:
         hparams["optimizer_params"] = self.get_optim_params()
         hparams["scheduler"] = hparams["scheduler"].__class__.__name__
         hparams["device"] = hparams["device"].type
+        self.hparams = hparams
 
         with open(f"{save_path}/hparams.yml", "w") as outfile:
             yaml.safe_dump(hparams, outfile, default_flow_style=False)
@@ -122,7 +138,9 @@ class TrainerModule:
 
         return pbar_params
 
-    def fit(self, train_dataloader, val_dataloader, epochs, batch_size):
+    def fit(
+        self, train_dataloader, val_dataloader, epochs, batch_size, project_name=None
+    ):
         self.epochs, self.batch_size = epochs, batch_size
         time = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
         dir_name = f"{self.experiment_name}_{time}"
@@ -136,6 +154,10 @@ class TrainerModule:
             format="%(message)s",
         )
         self.save_hparams(dir_name)
+        if self.use_wandb:
+            assert project_name is not None, "Provide project name to use wandb"
+            wandb.init(project=project_name, name=dir_name, config=self.hparams)
+            wandb.watch(self.model)
 
         es = EarlyStopping(**self.early_stop_params)
         for epoch in range(epochs):
@@ -145,8 +167,12 @@ class TrainerModule:
             logging_line = f"Epoch: {epoch+1}"
             for key, value in train_metrics.items():
                 logging_line += f", train_{key}: {value}"
+                if self.use_wandb:
+                    wandb.log({f"train_{key}": value}, step=epoch)
             for key, value in val_metrics.items():
                 logging_line += f", val_{key}: {value}"
+                if self.use_wandb:
+                    wandb.log({f"val_{key}": value}, step=epoch)
             logging.info(logging_line)
             if self.scheduler and self.scheduler_step == "end":
                 if self.scheduler.__class__.__name__ == "ReduceLROnPlateau":
