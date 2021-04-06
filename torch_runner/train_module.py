@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from tqdm.auto import tqdm
+from tqdm import tqdm
 import logging
 import datetime
 import os
@@ -26,38 +26,33 @@ class TrainerModule:
         self,
         model,
         optimizer,
-        device=None,
+        config,
         scheduler=None,
-        scheduler_step="end",
-        scheduler_step_metric="loss",
-        early_stop=False,
-        early_stop_params={"patience": 5, "mode": "min", "delta": 0.0},
-        early_stop_metric="loss",
-        experiment_name="model",
-        seed=0,
-        use_wandb=False,
     ):
+        self.config = config
+
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler
-        self.scheduler_step = scheduler_step
-        self.scheduler_step_metric = scheduler_step_metric
-        self.early_stop = early_stop
-        self.early_stop_params = early_stop_params
-        self.early_stop_metric = early_stop_metric
-        self.device = device
-        if self.device is None:
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        self.experiment_name = experiment_name
-        self.seed = seed
+        self.scheduler_step = config.scheduler_step
+        self.scheduler_step_metric = config.scheduler_step_metric
+
+        self.early_stop = config.early_stop
+        self.early_stop_params = config.early_stop_params
+        self.early_stop_metric = config.early_stop_params["metric"]
+
+        self.device = config.device
+        self.experiment_name = config.experiment_name
+        self.seed = config.seed
+
         self.epochs, self.batch_size = None, None
         self.hparams = None
         seed_everything(self.seed)
 
-        if use_wandb:
+        if config.use_wandb:
             import_wandb()
-        self.use_wandb = use_wandb
+        self.use_wandb = config.use_wandb
 
     def save_hparams(self, save_path):
         hparams = copy.deepcopy(self.__dict__)
@@ -144,6 +139,7 @@ class TrainerModule:
         self, train_dataloader, val_dataloader, epochs, batch_size, project_name=None
     ):
         self.epochs, self.batch_size = epochs, batch_size
+
         time = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
         dir_name = f"{self.experiment_name}_{time}"
         if os.path.exists(dir_name):
@@ -155,7 +151,9 @@ class TrainerModule:
             level=logging.INFO,
             format="%(message)s",
         )
+
         self.save_hparams(dir_name)
+
         if self.use_wandb:
             assert project_name is not None, "Provide project name to use wandb"
             wandb.init(project=project_name, name=dir_name, config=self.hparams)
@@ -166,6 +164,7 @@ class TrainerModule:
             print(f"Epoch: {epoch+1}/{epochs}")
             train_metrics = self.train_one_epoch(train_dataloader)
             val_metrics = self.validate_one_epoch(val_dataloader)
+
             logging_line = f"Epoch: {epoch+1}"
             for key, value in train_metrics.items():
                 logging_line += f", train_{key}: {value}"
@@ -176,6 +175,7 @@ class TrainerModule:
                 if self.use_wandb:
                     wandb.log({f"val_{key}": value}, step=epoch)
             logging.info(logging_line)
+
             if self.scheduler and self.scheduler_step == "end":
                 if self.scheduler.__class__.__name__ == "ReduceLROnPlateau":
                     self.scheduler.step(val_metrics[self.scheduler_step_metric])
