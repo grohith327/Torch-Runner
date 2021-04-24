@@ -58,11 +58,20 @@ def trainer(tmp_path, model, optimizer):
     return TestTrainer(model, optimizer, config)
 
 
+@pytest.fixture
+def trainer_wandb(tmp_path, model, optimizer):
+    exp_name = tmp_path / "test_model_wandb"
+    config = TrainerConfig(experiment_name=str(exp_name), use_wandb=True)
+    return TestTrainer(model, optimizer, config)
+
+
 def test_save_hparams(tmp_path, model, optimizer):
     config = TrainerConfig()
     trainer = TrainerModule(model, optimizer, config)
     trainer.save_hparams(tmp_path)
 
 
-def test_fit(trainer, train_dataloader, val_dataloader):
-    trainer.fit(train_dataloader, val_dataloader, 10)
+def test_fit(trainer_wandb, train_dataloader, val_dataloader):
+    trainer_wandb.fit(
+        train_dataloader, val_dataloader, 10, wanb_project_name="torch-runner-tests"
+    )

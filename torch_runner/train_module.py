@@ -6,19 +6,14 @@ import logging
 import datetime
 import os
 import yaml
-import importlib
 import copy
 from .utils import seed_everything, EarlyStopping, AverageMeter
 
-
-def import_wandb():
-    if importlib.util.find_spec("wandb") is None:
-        raise ModuleNotFoundError(
-            "module wandb not found. use command 'pip install wandb'"
-        )
-    else:
-        global wandb
-        import wandb
+try:
+    _wandb_available = True
+    import wandb
+except ImportError:
+    _wandb_available = False
 
 
 class TrainerModule:
@@ -51,8 +46,10 @@ class TrainerModule:
         self.hparams = None
         seed_everything(self.seed)
 
-        if config.use_wandb:
-            import_wandb()
+        if config.use_wandb and not _wandb_available:
+            raise ModuleNotFoundError(
+                "module wandb not found. use command 'pip install wandb'"
+            )
         self.use_wandb = config.use_wandb
 
     def save_hparams(self, save_path):

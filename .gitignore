@@ -4,3 +4,4 @@ build/
 dist/
 torch_runner.egg*
 *.pyc
+wandb/
