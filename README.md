@@ -48,5 +48,5 @@ train_dataloader = ## pytorch dataloader
 val_dataloader = ## pytorch dataloader
 
 Trainer = myTrainer(model, optimizer, config)
-Trainer.fit(train_dataloader, val_dataloader, epochs=10, batch_size=32)
+Trainer.fit(train_dataloader, val_dataloader, epochs=10)
 ```
