@@ -65,4 +65,4 @@ def test_save_hparams(tmp_path, model, optimizer):
 
 
 def test_fit(trainer, train_dataloader, val_dataloader):
-    trainer.fit(train_dataloader, val_dataloader, 10, 1)
+    trainer.fit(train_dataloader, val_dataloader, 10)

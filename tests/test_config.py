@@ -7,6 +7,7 @@ from torch_runner import TrainerConfig
 
 default_config = {
     "seed": 0,
+    "batch_size": 1,
     "experiment_name": "model",
     "device": "cpu",
     "scheduler_step": "end",
@@ -23,6 +24,7 @@ default_config = {
 
 config1 = {
     "seed": 100,
+    "batch_size": 32,
     "experiment_name": "test_model",
     "device": "cuda",
     "scheduler_step": "end",
@@ -39,6 +41,7 @@ config1 = {
 
 config2 = {
     "seed": 2,
+    "batch_size": 12,
     "experiment_name": "test_model",
     "device": "cpu",
     "scheduler_step": "end",
@@ -55,6 +58,7 @@ config2 = {
 
 config3 = {
     "seed": 2,
+    "batch_size": 1,
     "experiment_name": "test_model",
     "device": "cpu",
     "scheduler_step": "end",

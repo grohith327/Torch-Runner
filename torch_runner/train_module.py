@@ -46,7 +46,8 @@ class TrainerModule:
         self.experiment_name = config.experiment_name
         self.seed = config.seed
 
-        self.epochs, self.batch_size = None, None
+        self.epochs = None
+        self.batch_size = config.batch_size
         self.hparams = None
         seed_everything(self.seed)
 
@@ -136,10 +137,8 @@ class TrainerModule:
 
         return pbar_params
 
-    def fit(
-        self, train_dataloader, val_dataloader, epochs, batch_size, project_name=None
-    ):
-        self.epochs, self.batch_size = epochs, batch_size
+    def fit(self, train_dataloader, val_dataloader, epochs, wanb_project_name=None):
+        self.epochs = epochs
 
         time = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
         dir_name = f"{self.experiment_name}_{time}"

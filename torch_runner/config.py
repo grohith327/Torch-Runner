@@ -5,6 +5,7 @@ import torch
 @dataclass
 class TrainerConfig:
     seed: int = 0
+    batch_size: int = 1
     experiment_name: str = "model"
     device: str = "cpu"
     scheduler_step: str = "end"
