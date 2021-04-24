@@ -64,7 +64,10 @@ class EarlyStopping:
             self.save_checkpoint(epoch_score, model, optimizer, scheduler, model_path)
             self.counter = 0
 
-        return score_not_improved
+        if self.mode == "min":
+            return score_not_improved, -1.0 * self.best_score
+
+        return score_not_improved, self.best_score
 
     def save_checkpoint(self, epoch_score, model, optimizer, scheduler, model_path):
         if epoch_score not in [-np.inf, np.inf, -np.nan, np.nan]:

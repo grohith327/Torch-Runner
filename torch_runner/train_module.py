@@ -56,11 +56,12 @@ class TrainerModule:
 
     def save_hparams(self, save_path):
         hparams = copy.deepcopy(self.__dict__)
+        hparams["config"] = hparams["config"].__dict__
         hparams["model"] = hparams["model"].__class__.__name__
         hparams["optimizer"] = hparams["optimizer"].__class__.__name__
         hparams["optimizer_params"] = self.get_optim_params()
         hparams["scheduler"] = hparams["scheduler"].__class__.__name__
-        hparams["device"] = hparams["device"].type
+        hparams["device"] = hparams["device"]
         self.hparams = hparams
 
         with open(f"{save_path}/hparams.yml", "w") as outfile:
@@ -181,7 +182,7 @@ class TrainerModule:
                     self.scheduler.step(val_metrics[self.scheduler_step_metric])
                 else:
                     self.scheduler.step()
-            score_not_improved = es(
+            score_not_improved, best_score = es(
                 f"{dir_name}/model.pth",
                 val_metrics[self.early_stop_metric],
                 self.model,
@@ -192,11 +193,11 @@ class TrainerModule:
                 if self.early_stop:
                     print(
                         "EarlyStopping counter: {} out of {}, Best Score: {}".format(
-                            es.counter, es.patience, es.best_score
+                            es.counter, es.patience, best_score
                         )
                     )
                 else:
-                    print("Score not improved, Best Score: {}".format(es.best_score))
+                    print("Score not improved, Best Score: {}".format(best_score))
             if es.early_stop and self.early_stop:
                 print("Early Stopping")
                 break
