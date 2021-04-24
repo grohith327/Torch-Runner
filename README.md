@@ -28,9 +28,6 @@ import torch_runner as T
 
 
 class myTrainer(T.TrainerModule):
-    def __init__(self, model, optimizer):
-        super(myTrainer, self).__init__(model, optimizer)
-    
     def calc_metric(self, preds, target):
         ## Calc metrics such as accuracy etc.
     
@@ -43,12 +40,13 @@ class myTrainer(T.TrainerModule):
     def valid_one_step(self, batch, batch_id):
         ## Perform validation step
 
+config = T.TrainerConfig()
 model = myModel()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
 train_dataloader = ## pytorch dataloader
 val_dataloader = ## pytorch dataloader
 
-Trainer = myTrainer(model, optimizer)
+Trainer = myTrainer(model, optimizer, config)
 Trainer.fit(train_dataloader, val_dataloader, epochs=10, batch_size=32)
 ```
