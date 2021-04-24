@@ -155,8 +155,8 @@ class TrainerModule:
         self.save_hparams(dir_name)
 
         if self.use_wandb:
-            assert project_name is not None, "Provide project name to use wandb"
-            wandb.init(project=project_name, name=dir_name, config=self.hparams)
+            assert wanb_project_name is not None, "Provide project name to use wandb"
+            wandb.init(project=wanb_project_name, name=dir_name, config=self.hparams)
             wandb.watch(self.model)
 
         es = EarlyStopping(**self.early_stop_params)
